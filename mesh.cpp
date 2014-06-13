@@ -74,7 +74,7 @@ bool Mesh::load(const std::string& filename)
 
     std::cout << "Mesh loaded" << std::endl;
     Init();
-    InitAdditionalAtributes(mesh);
+    //InitAdditionalAtributes(mesh);
 
     //free();
     return true;
@@ -85,8 +85,10 @@ void Mesh::InitAdditionalAtributes(aiMesh *mesh)
     if(mesh->HasVertexColors(0)) InitVertexColorAtribute();
 }
 
+
 void Mesh::InitVertexColorAtribute()
 {
+    /*
     glGenBuffers(1, &vboColorID);
     glBindVertexArray(vaoID);
         glBindBuffer (GL_ARRAY_BUFFER, vboColorID);
@@ -102,6 +104,7 @@ void Mesh::InitVertexColorAtribute()
         glEnableVertexAttribArray(2);
         glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE,0,0);
     glBindVertexArray(0);
+    */
 }
 
 CBBox Mesh::getBBox()

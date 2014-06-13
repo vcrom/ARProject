@@ -20,7 +20,6 @@ public:
     void Destroy();
 
 protected:
-    GLuint vaoID;
     GLuint vboVerticesID;
     GLuint vboIndicesID;
     GLuint vboNormalsID;

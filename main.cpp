@@ -4,9 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #ifndef __APPLE__
+#include "GL/glew.h"
 #include <GL/gl.h>
 #include <GL/glut.h>
 #else
+#include "GL/glew.h"
 #include <OpenGL/gl.h>
 #include <GLUT/glut.h>
 #endif
@@ -42,6 +44,18 @@ static void   cleanup(void);
 static void   keyEvent( unsigned char key, int x, int y);
 static void   mainLoop(void);
 static void   draw( void );
+
+//meshes
+#include <iostream>
+#include "mesh.h"
+Mesh mesh;
+
+void initGL()
+{
+    glewInit();
+    if(!mesh.load("models/bunny.ply"))
+        std::cout << "Failed to load mesh" << std::endl;
+}
 
 int main(int argc, char **argv)
 {
@@ -138,6 +152,9 @@ static void init( void )
 
     /* open the graphics window */
     argInit( &cparam, 1.0, 0, 0, 0, 0 );
+
+    //init GL and meshes
+    initGL();
 }
 
 /* cleanup function called when program exits */
@@ -180,8 +197,11 @@ static void draw( void )
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
     glMatrixMode(GL_MODELVIEW);
     glTranslatef( 0.0, 0.0, 25.0 );
-    glutSolidCube(50.0);
+    //glutSolidCube(50.0);
+    glScalef(50, 50, 50);
+mesh.Render();
     glDisable( GL_LIGHTING );
+
 
     glDisable( GL_DEPTH_TEST );
 }

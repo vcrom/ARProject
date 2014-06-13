@@ -16,6 +16,7 @@ TARGET = ARProject
 
 TEMPLATE = app
 
+#AR toolkit
 LIBS += -L/usr/X11R6/lib \
         -L/usr/local/lib \
         -L$$_PRO_FILE_PWD_/lib \
@@ -37,13 +38,27 @@ LIBS += -L/usr/X11R6/lib \
         -lxml2 \
         -lglib-2.0
 
+#assimp & GLEW
+LIBS += -lGLEW
+LIBS += -lassimp #libassimp-dev
+
+
 
 
 INCLUDEPATH += "$$_PRO_FILE_PWD_/include"
 
 LIBRARY_PATH += "$$_PRO_FILE_PWD_/lib"
 
-SOURCES += main.cpp
+SOURCES += main.cpp \
+    mesh.cpp \
+    renderableobject.cpp \
+    bbox.cpp
 
 QMAKE_POST_LINK +=  mkdir -p Data &
 QMAKE_POST_LINK +=  $$QMAKE_COPY $$_PRO_FILE_PWD_/Data/* Data &
+#export ARTOOLKIT_CONFIG="v4l2src device=/dev/video0 use-fixed-fps=false ! ffmpegcolorspace ! capsfilter caps=video/x-raw-rgb,bpp=24 ! identity name=artoolkit ! fakesink"
+
+HEADERS += \
+    mesh.h \
+    renderableobject.h \
+    bbox.h

@@ -16,7 +16,6 @@ RenderableObject::~RenderableObject(void)
 #define GL_CHECK_ERRORS assert(glGetError()== GL_NO_ERROR);
 void RenderableObject::Init() {
     //setup vao and vbo stuff
-    glGenVertexArrays(1, &vaoID);
     glGenBuffers(1, &vboVerticesID);
     glGenBuffers(1, &vboNormalsID);
     glGenBuffers(1, &vboIndicesID);
@@ -26,40 +25,25 @@ void RenderableObject::Init() {
     totalIndices  = GetTotalIndices();
     primType      = GetPrimitiveType();
 
-    //now allocate buffers
-    glBindVertexArray(vaoID);
+    GLuint* pIBuffer = (GLuint*) malloc (sizeof(GLuint)*totalIndices);
+    FillIndexBuffer(pIBuffer);
 
-        //vertices
-        glBindBuffer (GL_ARRAY_BUFFER, vboVerticesID);
-        glBufferData (GL_ARRAY_BUFFER, totalVertices * sizeof(glm::vec3), 0, GL_STATIC_DRAW);
+    //index
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndicesID);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*totalIndices, pIBuffer, GL_STATIC_DRAW);
 
-        GLfloat* pBuffer = static_cast<GLfloat*>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
-            FillVertexBuffer(pBuffer);
-        glUnmapBuffer(GL_ARRAY_BUFFER);
+    GLfloat* pBuffer = (GLfloat*) malloc (sizeof(GLfloat)*totalVertices*3);
+    FillVertexBuffer(pBuffer);
+    //vertex
+    glBindBuffer(GL_ARRAY_BUFFER, vboVerticesID);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*totalVertices, pBuffer, GL_STATIC_DRAW);
 
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,0,0);
 
-        //Normals
-        glBindBuffer (GL_ARRAY_BUFFER, vboNormalsID);
-        glBufferData (GL_ARRAY_BUFFER, totalVertices * sizeof(glm::vec3), 0, GL_STATIC_DRAW);
+    FillNormalBuffer(pBuffer);
+    //normals
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboNormalsID);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLfloat)*totalVertices, pBuffer, GL_STATIC_DRAW);
 
-        pBuffer = static_cast<GLfloat*>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
-            FillNormalBuffer(pBuffer);
-        glUnmapBuffer(GL_ARRAY_BUFFER);
-
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,0,0);
-
-        //Faces indices
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndicesID);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, totalIndices * sizeof(GLuint), 0, GL_STATIC_DRAW);
-
-        GLuint* pIBuffer = static_cast<GLuint*>(glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY));
-            FillIndexBuffer(pIBuffer);
-        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
-
-    glBindVertexArray(0);
     GL_CHECK_ERRORS
 }
 
@@ -67,12 +51,22 @@ void RenderableObject::Destroy() {
     //Destroy vao and vbo
     glDeleteBuffers(1, &vboVerticesID);
     glDeleteBuffers(1, &vboIndicesID);
-    glDeleteVertexArrays(1, &vaoID);
+    glDeleteBuffers(1, &vboNormalsID);
 }
 
 
 void RenderableObject::Render() {
-    glBindVertexArray(vaoID);
-        glDrawElements(primType, totalIndices, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+    //Vertex
+    glBindBuffer(GL_ARRAY_BUFFER, vboVerticesID);
+    glVertexPointer(3, GL_FLOAT, 0, (GLvoid*) 0);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    //Normals
+    glBindBuffer(GL_ARRAY_BUFFER, vboNormalsID);
+    glNormalPointer(GL_FLOAT, 0, (GLvoid*) 0);
+    glEnableClientState(GL_NORMAL_ARRAY);
+    //Index
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndicesID);
+
+    //Render
+    glDrawElements(GetPrimitiveType(), totalIndices, GL_UNSIGNED_INT, (GLvoid*)0);
 }
