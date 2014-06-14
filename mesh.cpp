@@ -88,23 +88,14 @@ void Mesh::InitAdditionalAtributes(aiMesh *mesh)
 
 void Mesh::InitVertexColorAtribute()
 {
-    /*
+
     glGenBuffers(1, &vboColorID);
-    glBindVertexArray(vaoID);
-        glBindBuffer (GL_ARRAY_BUFFER, vboColorID);
-        glBufferData (GL_ARRAY_BUFFER, totalVertices * sizeof(glm::vec4), 0, GL_STATIC_DRAW);
+    GLfloat* pBuffer = (GLfloat*) malloc (sizeof(GLfloat)*totalVertices*3);
+    //colors
+    FillColorBuffer(pBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vboColorID);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4)*totalVertices, pBuffer, GL_STATIC_DRAW);
 
-        GLfloat* pBuffer = static_cast<GLfloat*>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
-        glm::vec4* col = (glm::vec4*)(pBuffer);
-        for( int i = 0 ; i<nVertices; i++) {
-            col[i] = colours[i];
-        }
-        glUnmapBuffer(GL_ARRAY_BUFFER);
-
-        glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE,0,0);
-    glBindVertexArray(0);
-    */
 }
 
 CBBox Mesh::getBBox()
@@ -159,6 +150,13 @@ void Mesh::FillNormalBuffer(GLfloat* pBuffer) {
     glm::vec3* norm = (glm::vec3*)(pBuffer);
     for( int i = 0 ; i<nVertices; i++) {
         norm[i] = normals[i];
+    }
+}
+
+void Mesh::FillColorBuffer(GLfloat* pBuffer) {
+    glm::vec4* col = (glm::vec4*)(pBuffer);
+    for( int i = 0 ; i<nVertices; i++) {
+        col[i] = colours[i];
     }
 }
 

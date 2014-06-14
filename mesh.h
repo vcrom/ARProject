@@ -30,6 +30,7 @@ protected:
     void FillVertexBuffer( GLfloat* pBuffer);
     void FillIndexBuffer( GLuint* pBuffer);
     void FillNormalBuffer( GLfloat* pBuffer);
+    void FillColorBuffer(GLfloat* pBuffer);
 
 private:
     void calcBBox();

@@ -26,21 +26,19 @@ void RenderableObject::Init() {
     primType      = GetPrimitiveType();
 
     GLuint* pIBuffer = (GLuint*) malloc (sizeof(GLuint)*totalIndices);
-    FillIndexBuffer(pIBuffer);
-
     //index
+    FillIndexBuffer(pIBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndicesID);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*totalIndices, pIBuffer, GL_STATIC_DRAW);
 
     GLfloat* pBuffer = (GLfloat*) malloc (sizeof(GLfloat)*totalVertices*3);
-    FillVertexBuffer(pBuffer);
     //vertex
+    FillVertexBuffer(pBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vboVerticesID);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*totalVertices, pBuffer, GL_STATIC_DRAW);
 
-
-    FillNormalBuffer(pBuffer);
     //normals
+    FillNormalBuffer(pBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboNormalsID);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLfloat)*totalVertices, pBuffer, GL_STATIC_DRAW);
 
