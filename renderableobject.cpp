@@ -67,4 +67,10 @@ void RenderableObject::Render() {
 
     //Render
     glDrawElements(GetPrimitiveType(), totalIndices, GL_UNSIGNED_INT, (GLvoid*)0);
+
+    //Deactivate
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+    glBindBuffer(GL_ARRAY_BUFFER,0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
 }
