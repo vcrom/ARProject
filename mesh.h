@@ -33,6 +33,7 @@ protected:
     void FillColorBuffer(GLfloat* pBuffer);
 
 private:
+    void PreTransforms();
     void ScaleMeshToUnit();
     void calcBBox();
     bool calc_box;

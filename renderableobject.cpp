@@ -31,16 +31,16 @@ void RenderableObject::Init() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboIndicesID);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*totalIndices, pIBuffer, GL_STATIC_DRAW);
 
-    GLfloat* pBuffer = (GLfloat*) malloc (sizeof(GLfloat)*totalVertices*3);
+    GLfloat* pBuffer = (GLfloat*) malloc (sizeof(glm::vec3)*totalVertices);
     //vertex
     FillVertexBuffer(pBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vboVerticesID);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*totalVertices, pBuffer, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*totalVertices, pBuffer, GL_STATIC_DRAW);
 
     //normals
     FillNormalBuffer(pBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vboNormalsID);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLfloat)*totalVertices, pBuffer, GL_STATIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(glm::vec3)*totalVertices, pBuffer, GL_STATIC_DRAW);
 
     GL_CHECK_ERRORS
 }

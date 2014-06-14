@@ -73,6 +73,7 @@ bool Mesh::load(const std::string& filename)
     }
 
     std::cout << "Mesh loaded" << std::endl;
+    PreTransforms();
     Init();
     //InitAdditionalAtributes(mesh);
 
@@ -94,6 +95,11 @@ void Mesh::InitVertexColorAtribute()
     FillColorBuffer(pBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vboColorID);
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4)*totalVertices, pBuffer, GL_STATIC_DRAW);
+}
+
+void Mesh::PreTransforms()
+{
+    ScaleMeshToUnit();
 }
 
 void Mesh::ScaleMeshToUnit()
