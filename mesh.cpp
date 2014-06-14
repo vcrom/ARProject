@@ -88,14 +88,22 @@ void Mesh::InitAdditionalAtributes(aiMesh *mesh)
 
 void Mesh::InitVertexColorAtribute()
 {
-
     glGenBuffers(1, &vboColorID);
     GLfloat* pBuffer = (GLfloat*) malloc (sizeof(GLfloat)*totalVertices*3);
     //colors
     FillColorBuffer(pBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, vboColorID);
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4)*totalVertices, pBuffer, GL_STATIC_DRAW);
+}
 
+void Mesh::ScaleMeshToUnit()
+{
+    calcBBox();
+    glm::vec3 dims = mesh_bbox.limits[1] - mesh_bbox.limits[0];
+    float max_dim = max(dims.x, dims.y);
+    max_dim = max(max_dim, dims.z);
+    for(int i = 0; i < nVertices; ++i)
+        vertices[i] /= max_dim;
 }
 
 CBBox Mesh::getBBox()
