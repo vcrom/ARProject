@@ -17,14 +17,15 @@ public:
     AnimatedObject(int speed);
     ~AnimatedObject();
 
-    void Render(Pattern kanji, std::vector<Pattern> hiros);
-
+    void render(Pattern kanji, std::vector<Pattern> hiros);
+    bool reachedGoal();
 private:
     void addFrame(int num_crl_points);
     unsigned int frame;
     unsigned int location;
     float rotation;
     float frames_to_target;
+    bool finish;
 
 };
 

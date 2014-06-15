@@ -6,6 +6,7 @@ AnimatedObject::AnimatedObject()
     location = 0;
     rotation = 0.0f;
     frames_to_target = 100;
+    finish = false;
 }
 
 AnimatedObject::AnimatedObject(int speed)
@@ -14,11 +15,17 @@ AnimatedObject::AnimatedObject(int speed)
     location = 0;
     rotation = 0.0f;
     frames_to_target = speed;
+    finish = false;
 }
 
 
 AnimatedObject::~AnimatedObject()
 {
+}
+
+bool AnimatedObject::reachedGoal()
+{
+    return finish;
 }
 
 void AnimatedObject::addFrame(int num_crl_points)
@@ -28,11 +35,13 @@ void AnimatedObject::addFrame(int num_crl_points)
 
     if (frame >= frames_to_target) {
         frame = 0;
-        location = (location+1)% num_crl_points;
+        ++location;
+        if(location > num_crl_points)
+            finish = true;
     }
 }
 
-void AnimatedObject::Render(Pattern kanji, std::vector<Pattern> hiros)
+void AnimatedObject::render(Pattern kanji, std::vector<Pattern> hiros)
 {
     GLfloat   mat_ambient[]     = {1.0, 0.0, 0.0, 1.0};
     GLfloat   mat_flash[]       = {1.0, 0.0, 0.0, 1.0};

@@ -51,12 +51,13 @@ Pattern kanji;
 vector<Pattern> hiro;
 
 
-struct animated_object {
-    unsigned int frame;
-    unsigned int location;
-};
+//struct animated_object {
+//    unsigned int frame;
+//    unsigned int location;
+//};
 
-animated_object renderable;
+//animated_object renderable;
+bool debug = false;
 std::vector<AnimatedObject> enemies;
 
 void initGL() {
@@ -81,10 +82,31 @@ static void keyEvent( unsigned char key, int x, int y) {
         cleanup();
         exit(0);
     }
+    if( key == 'd' ) {
+        debug = !debug;
+    }
 }
 
 bool pattern_sort(Pattern a, Pattern b) {
     return a.get_origin().x < b.get_origin().b;
+}
+
+void updateEnemies()
+{
+
+    if((float)rand()/(float)RAND_MAX > 0.5 && enemies.size() < 5)
+        enemies.push_back(AnimatedObject());
+
+
+    for(int i = 0; i < enemies.size(); ++i)
+    {
+        if(enemies[i].reachedGoal())
+        {
+            cout << "ouch" << endl;
+            enemies.erase(enemies.begin()+i, enemies.begin()+i+1);
+        }
+
+    }
 }
 
 /* main loop */
@@ -162,8 +184,8 @@ static void mainLoop(void) {
     sort(hiro.begin(), hiro.end(), pattern_sort);
 
 
-    if((float)rand()/(float)RAND_MAX > 0.5 && enemies.size() < 5)
-        enemies.push_back(AnimatedObject());
+    updateEnemies();
+
     draw();
 
     argSwapBuffers();
@@ -202,11 +224,11 @@ static void init( void ) {
     //init GL and meshes
     initGL();
 
-    renderable.frame = 0;
-    renderable.location = 0;
+//    renderable.frame = 0;
+//    renderable.location = 0;
 
     enemies = vector<AnimatedObject>(0);
-    enemies.push_back(AnimatedObject());
+    //enemies.push_back(AnimatedObject());
 
 }
 
@@ -254,7 +276,7 @@ static void draw( void )
 
     cerr << "Hiros:" << hiro.size() << endl;
     /* load the camera transformation matrix */
-    if (hiro.size() > 0) {
+    if (hiro.size() > 1) {
         glEnable(GL_LIGHTING);
         glEnable(GL_LIGHT0);
         glLightfv(GL_LIGHT0, GL_POSITION, light_position);
@@ -288,7 +310,7 @@ cerr << "size: " << enemies.size() << endl;
 
         for(int i = 0; i < enemies.size(); ++i)
         {
-            enemies[i].Render(kanji, hiro);
+            enemies[i].render(kanji, hiro);
         }
 
 
@@ -297,13 +319,13 @@ cerr << "size: " << enemies.size() << endl;
 
         glDisable( GL_DEPTH_TEST );
 
-drawPath();
+        if(debug) drawPath();
 
-        renderable.frame += 1;
-        if (renderable.frame == 100) {
-            renderable.frame = 0;
-            renderable.location = (renderable.location+1)% hiro.size();
-        }
+//        renderable.frame += 1;
+//        if (renderable.frame == 100) {
+//            renderable.frame = 0;
+//            renderable.location = (renderable.location+1)% hiro.size();
+//        }
     }
     /** Render a Bunny over each hiro pattern.
     for (unsigned int i = 0; i < hiro.size(); ++i) {
