@@ -35,6 +35,7 @@ ARParam         cparam;
 
 const char           *patt_hiro      = "Data/patt.hiro";
 const char           *patt_kanji      = "Data/patt.kanji";
+const char           *patt_sample1      = "Data/patt.sample1";
 int            id_kanji, id_hiro, id_sample1;
 
 static void   init(void);
@@ -46,9 +47,12 @@ static void   draw( void );
 #include "pattern.hpp"
 #include "mesh.h"
 #include "animatedobject.h"
+#include "turret.h"
+
 Mesh mesh;
 Pattern kanji;
 vector<Pattern> hiro;
+vector<Pattern> towers;
 
 
 //struct animated_object {
@@ -91,12 +95,35 @@ bool pattern_sort(Pattern a, Pattern b) {
     return a.get_origin().x < b.get_origin().b;
 }
 
+void updateTowers()
+{
+    for(uint i = 0; i < towers.size(); ++i)
+    {
+        double * gl_para = kanji.get_transformation_matrix();
+        glm::vec4 origin = towers[i].get_origin();
+        glm::vec3 turret_position = glm::vec3(gl_para[12] + origin.x, gl_para[13] + origin.y, gl_para[14] + origin.z);
+        int enemy = -1;
+        for(uint j = 0; j < enemies.size(); ++j)
+        {
+            glm::vec3 enemy_position = enemies[j].getPosition();
+            if(Turret::inRange(turret_position, enemy_position))
+            {
+                enemy = j;
+                break;
+            }
+        }
+        if(enemy >= 0)
+        {
+            cerr << "I can shoot" << endl;
+            //shot a bullet
+        }
+    }
+}
+
 void updateEnemies()
 {
-
     if((float)rand()/(float)RAND_MAX > 0.5 && enemies.size() < 5)
         enemies.push_back(AnimatedObject());
-
 
     for(uint i = 0; i < enemies.size(); ++i)
     {
@@ -105,7 +132,6 @@ void updateEnemies()
             cout << "ouch" << endl;
             enemies.erase(enemies.begin()+i, enemies.begin()+i+1);
         }
-
     }
 }
 
@@ -144,10 +170,13 @@ static void mainLoop(void) {
 
     for( j = 0; j < marker_num; j++ ) {
 
-        if (id_kanji == marker_info[j].id) {
+        if (id_kanji == marker_info[j].id)
+        {
             cerr << "Kanji detected!" << endl;
             kanji.set_position(&marker_info[j]);
-        } else if (id_hiro == marker_info[j].id && kanji.oriented) {
+        }
+        else if (id_hiro == marker_info[j].id && kanji.oriented)
+        {
             cerr << "Hiro detected: " << hiro.size() << endl;
             double patt_width = 80.f;
             double patt_center[2] = {0, 0};
@@ -179,12 +208,47 @@ static void mainLoop(void) {
 
             hiro[closest].accomulate_relative_position(&marker_info[j], kanji.get_origin());
         }
+        else if(id_sample1 == marker_info[j].id && kanji.oriented )
+        {
+            cerr << "sample Detected!: " << towers.size() << endl;
+            double patt_width = 80.f;
+            double patt_center[2] = {0, 0};
+            double patt_trans[3][4];
+
+            double gl_para[16];
+
+            arGetTransMat(&marker_info[j], patt_center, patt_width, patt_trans);
+            argConvGlpara(patt_trans, gl_para);
+
+            int closest = -1;
+            float min_dist = FLT_MAX;
+            for (unsigned int i = 0; i < towers.size(); ++i) {
+                glm::vec4 korigin = towers[i].reference;
+                glm::vec4 origin(gl_para[12]-korigin.x, gl_para[13]-korigin.y, gl_para[14]-korigin.z, 1.0);
+                float dist = glm::distance(origin, towers[i].get_origin());
+
+                if (dist < min_dist) {
+                    min_dist = dist;
+                    closest = i;
+                }
+            }
+
+            if (closest < 0 || (min_dist > 200 )) {
+                towers.push_back(Pattern());
+                closest = towers.size()-1;
+            }
+            towers[closest].accomulate_relative_position(&marker_info[j], kanji.get_origin());
+        }
     }
 
-    sort(hiro.begin(), hiro.end(), pattern_sort);
 
 
-    updateEnemies();
+    if(hiro.size() > 1)
+    {
+        updateTowers();
+        updateEnemies();
+    }
+
 
     draw();
 
@@ -213,7 +277,8 @@ static void init( void ) {
 
     id_kanji = arLoadPatt(patt_kanji);
     id_hiro = arLoadPatt(patt_hiro);
-    if ( id_kanji < 0 || id_hiro < 0 ) {
+    id_sample1 = arLoadPatt(patt_sample1);
+    if ( id_kanji < 0 || id_hiro < 0 || id_sample1 < 0) {
         printf("pattern load error !!\n");
         exit(0);
     }
@@ -242,6 +307,9 @@ static void cleanup(void)
 
 void drawPath()
 {
+    double * gl_para = kanji.get_transformation_matrix();
+    glm::vec3 pos_kanji(gl_para[12], gl_para[13], gl_para[14]);
+
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glColor3f(1.0f, 0.0f, 0.0f);
@@ -249,10 +317,10 @@ void drawPath()
     for(uint i = 0; i < hiro.size()-1; ++i)
     {
         cerr << "LINES" << endl;
-        glm::vec4 p1 = hiro[i].get_global_position();
-        glm::vec4 p2 = hiro[i+1].get_global_position();
-        glVertex3f(p1.x, p1.y, p1.z);
-        glVertex3f(p2.x, p2.y, p2.z);
+        glm::vec4 p1 = hiro[i].get_origin();
+        glm::vec4 p2 = hiro[i+1].get_origin();
+        glVertex3f(p1.x+pos_kanji.x, p1.y+pos_kanji.y, p1.z+pos_kanji.z);
+        glVertex3f(p2.x+pos_kanji.x, p2.y+pos_kanji.y, p2.z+pos_kanji.z);
     }
     glEnd();
 }
@@ -269,60 +337,70 @@ static void draw( void )
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambi);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightZeroColor);
 
+
+    cerr << "towers:" << towers.size() << endl;
+    if(towers.size() > 0)
+    {
+        for(int i = 0; i < towers.size(); ++i)
+        {
+            double * gl_para = kanji.get_transformation_matrix();
+            glm::vec4 origin = towers[i].get_origin();
+            gl_para[12] += origin.x;
+            gl_para[13] += origin.y;
+            gl_para[14] += origin.z;
+
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            glLoadMatrixd( gl_para );
+
+            glutSolidTeapot(50);
+        }
+    }
     cerr << "Hiros:" << hiro.size() << endl;
-    /* load the camera transformation matrix */
     if (hiro.size() > 1) {
-        glEnable(GL_LIGHTING);
-        glEnable(GL_LIGHT0);
-        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-        glLightfv(GL_LIGHT0, GL_AMBIENT, ambi);
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, lightZeroColor);
-/*
-        glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
-        glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
-        glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
 
-        glm::vec4 origin = hiro[renderable.location].get_origin();
-        glm::vec4 target = hiro[(renderable.location+1)%hiro.size()].get_origin();
-        double * gl_para = kanji.get_transformation_matrix();
-        float t = ((float) renderable.frame)/100.0f;
-        gl_para[12] += origin.x * (1-t) + target.x*t;
-        gl_para[13] += origin.y * (1-t) + target.y*t;
-        gl_para[14] += origin.z * (1-t) + target.z*t;
+//        glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
+//        glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
+//        glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
 
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glLoadMatrixd( gl_para );
+//        glm::vec4 origin = hiro[renderable.location].get_origin();
+//        glm::vec4 target = hiro[(renderable.location+1)%hiro.size()].get_origin();
+//        double * gl_para = kanji.get_transformation_matrix();
+//        float t = ((float) renderable.frame)/100.0f;
+//        gl_para[12] += origin.x * (1-t) + target.x*t;
+//        gl_para[13] += origin.y * (1-t) + target.y*t;
+//        gl_para[14] += origin.z * (1-t) + target.z*t;
 
-        glMatrixMode(GL_MODELVIEW);
-        glTranslatef( 0.0, 0.0, 25.0 );
+//        glMatrixMode(GL_MODELVIEW);
+//        glLoadIdentity();
+//        glLoadMatrixd( gl_para );
 
-        glScalef(50, 50, 50);
-            mesh.Render();
-*/
+//        glMatrixMode(GL_MODELVIEW);
+//        glTranslatef( 0.0, 0.0, 25.0 );
 
-cerr << "size: " << enemies.size() << endl;
+//        glScalef(50, 50, 50);
+//            mesh.Render();
 
+
+        //cerr << "size: " << enemies.size() << endl;
         for(uint i = 0; i < enemies.size(); ++i)
         {
             enemies[i].render(kanji, hiro);
         }
-
-
-        glDisable( GL_LIGHTING );
-
-
-        glDisable( GL_DEPTH_TEST );
-
-        if(debug) drawPath();
-
-//        renderable.frame += 1;
-//        if (renderable.frame == 100) {
-//            renderable.frame = 0;
-//            renderable.location = (renderable.location+1)% hiro.size();
-//        }
     }
+
+    glDisable( GL_LIGHTING );
+
+    glDisable( GL_DEPTH_TEST );
+
+    if(debug) drawPath();
+
     /** Render a Bunny over each hiro pattern.
     for (unsigned int i = 0; i < hiro.size(); ++i) {
 

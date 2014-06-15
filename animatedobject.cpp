@@ -58,6 +58,7 @@ void AnimatedObject::render(Pattern kanji, std::vector<Pattern> hiros)
     gl_para[13] += origin.y * (1-t) + target.y*t;
     gl_para[14] += origin.z * (1-t) + target.z*t;
 
+    position = glm::vec3(gl_para[12], gl_para[13], gl_para[14]);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glLoadMatrixd( gl_para );
@@ -70,4 +71,9 @@ void AnimatedObject::render(Pattern kanji, std::vector<Pattern> hiros)
     glutSolidCube(30);
 
     addFrame(hiros.size());
+}
+
+glm::vec3 AnimatedObject::getPosition()
+{
+    return position;
 }

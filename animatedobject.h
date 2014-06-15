@@ -19,6 +19,8 @@ public:
 
     void render(Pattern kanji, std::vector<Pattern> hiros);
     bool reachedGoal();
+    glm::vec3 getPosition();
+
 private:
     void addFrame(int num_crl_points);
     unsigned int frame;
@@ -26,6 +28,8 @@ private:
     float rotation;
     float frames_to_target;
     bool finish;
+
+    glm::vec3 position;
 
 };
 
