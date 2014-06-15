@@ -22,9 +22,10 @@ public:
     bool load(const std::string &filename);
     void free();
     CBBox getBBox();
+    int GetTotalVertices();
 
 protected:
-    int GetTotalVertices();
+    //int GetTotalVertices();
     int GetTotalIndices();
     GLenum GetPrimitiveType();
     void FillVertexBuffer( GLfloat* pBuffer);

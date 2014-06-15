@@ -3,6 +3,7 @@
 Mesh::Mesh()
 {
     calc_box = false;
+    nVertices = 0;
 }
 
 Mesh::~Mesh()

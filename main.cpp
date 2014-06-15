@@ -161,6 +161,9 @@ static void mainLoop(void) {
 
     sort(hiro.begin(), hiro.end(), pattern_sort);
 
+
+    if((float)rand()/(float)RAND_MAX > 0.5 && enemies.size() < 5)
+        enemies.push_back(AnimatedObject());
     draw();
 
     argSwapBuffers();
@@ -201,6 +204,8 @@ static void init( void ) {
 
     renderable.frame = 0;
     renderable.location = 0;
+
+    enemies = vector<AnimatedObject>(0);
     enemies.push_back(AnimatedObject());
 
 }
@@ -255,6 +260,7 @@ static void draw( void )
         glLightfv(GL_LIGHT0, GL_POSITION, light_position);
         glLightfv(GL_LIGHT0, GL_AMBIENT, ambi);
         glLightfv(GL_LIGHT0, GL_DIFFUSE, lightZeroColor);
+/*
         glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
         glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
         glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
@@ -270,24 +276,21 @@ static void draw( void )
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glLoadMatrixd( gl_para );
-/*
-        glEnable(GL_LIGHTING);
-        glEnable(GL_LIGHT0);
-        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-        glLightfv(GL_LIGHT0, GL_AMBIENT, ambi);
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, lightZeroColor);
-        glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
-        glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
-        glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
-    */
+
         glMatrixMode(GL_MODELVIEW);
-        //glTranslatef( 0.0, 0.0, 25.0 );
+        glTranslatef( 0.0, 0.0, 25.0 );
 
         glScalef(50, 50, 50);
             mesh.Render();
+*/
 
+cerr << "size: " << enemies.size() << endl;
 
-enemies[0].Render(kanji, hiro);
+        for(int i = 0; i < enemies.size(); ++i)
+        {
+            enemies[i].Render(kanji, hiro);
+        }
+
 
         glDisable( GL_LIGHTING );
 
