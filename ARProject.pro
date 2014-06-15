@@ -52,7 +52,8 @@ LIBRARY_PATH += "$$_PRO_FILE_PWD_/lib"
 SOURCES += main.cpp \
     mesh.cpp \
     renderableobject.cpp \
-    bbox.cpp
+    bbox.cpp \
+    pattern.cpp
 
 QMAKE_POST_LINK +=  mkdir -p Data &
 QMAKE_POST_LINK +=  $$QMAKE_COPY $$_PRO_FILE_PWD_/Data/* Data &
@@ -61,4 +62,5 @@ QMAKE_POST_LINK +=  $$QMAKE_COPY $$_PRO_FILE_PWD_/Data/* Data &
 HEADERS += \
     mesh.h \
     renderableobject.h \
-    bbox.h
+    bbox.h \
+    pattern.hpp

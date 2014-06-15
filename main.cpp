@@ -1,21 +1,21 @@
-#ifdef _WIN32
-#include <windows.h>
-#endif
+
 #include <stdio.h>
 #include <stdlib.h>
-#ifndef __APPLE__
+
 #include "GL/glew.h"
 #include <GL/gl.h>
-#include <GL/glut.h>
-#else
-#include "GL/glew.h"
-#include <OpenGL/gl.h>
-#include <GLUT/glut.h>
-#endif
+#include <GL/freeglut.h>
+
 #include <AR/gsub.h>
 #include <AR/video.h>
 #include <AR/param.h>
 #include <AR/ar.h>
+
+#include <glm/glm.hpp>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
 
 //
 // Camera configuration.
@@ -27,17 +27,15 @@ char			*vconf = "";
 #endif
 
 int             xsize, ysize;
-int             thresh = 100;
-int             count = 0;
+int             thresh = 200;
+int             counter = 0;
 
 char           *cparam_name    = "Data/camera_para.dat";
 ARParam         cparam;
 
-char           *patt_name      = "Data/patt.hiro";
-int             patt_id;
-double          patt_width     = 80.0;
-double          patt_center[2] = {0.0, 0.0};
-double          patt_trans[3][4];
+char           *patt_hiro      = "Data/patt.hiro";
+char           *patt_kanji      = "Data/patt.kanji";
+int            id_kanji, id_hiro;
 
 static void   init(void);
 static void   cleanup(void);
@@ -45,20 +43,26 @@ static void   keyEvent( unsigned char key, int x, int y);
 static void   mainLoop(void);
 static void   draw( void );
 
-//meshes
-#include <iostream>
+#include "pattern.hpp"
 #include "mesh.h"
 Mesh mesh;
+Pattern kanji;
+vector<Pattern> hiro;
 
-void initGL()
-{
+struct animated_object {
+    unsigned int frame;
+    unsigned int location;
+};
+
+animated_object renderable;
+
+void initGL() {
     glewInit();
     if(!mesh.load("models/bunny.ply"))
         std::cout << "Failed to load mesh" << std::endl;
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     glutInit(&argc, argv);
     init();
 
@@ -67,31 +71,33 @@ int main(int argc, char **argv)
     return (0);
 }
 
-static void   keyEvent( unsigned char key, int x, int y)
-{
+static void keyEvent( unsigned char key, int x, int y) {
     /* quit if the ESC key is pressed */
     if( key == 0x1b ) {
-        printf("*** %f (frame/sec)\n", (double)count/arUtilTimer());
+        printf("*** %f (frame/sec)\n", (double)counter/arUtilTimer());
         cleanup();
         exit(0);
     }
 }
 
+bool pattern_sort(Pattern a, Pattern b) {
+    return a.get_origin().x < b.get_origin().b;
+}
+
 /* main loop */
-static void mainLoop(void)
-{
+static void mainLoop(void) {
     ARUint8         *dataPtr;
     ARMarkerInfo    *marker_info;
     int             marker_num;
-    int             j, k;
+    int             j;
 
     /* grab a vide frame */
     if( (dataPtr = (ARUint8 *)arVideoGetImage()) == NULL ) {
         arUtilSleep(2);
         return;
     }
-    if( count == 0 ) arUtilTimerReset();
-    count++;
+    if( counter == 0 ) arUtilTimerReset();
+    counter++;
 
     argDrawMode2D();
     argDispImage( dataPtr, 0,0 );
@@ -103,30 +109,56 @@ static void mainLoop(void)
     }
 
     arVideoCapNext();
-
+    cerr << marker_num << "Patterns detected!" << endl;
     /* check for object visibility */
-    k = -1;
+
     for( j = 0; j < marker_num; j++ ) {
-        if( patt_id == marker_info[j].id ) {
-            if( k == -1 ) k = j;
-            else if( marker_info[k].cf < marker_info[j].cf ) k = j;
+
+        if (id_kanji == marker_info[j].id) {
+            cerr << "Kanji detected!" << endl;
+            kanji.set_position(&marker_info[j]);
+        } else if (id_hiro == marker_info[j].id && kanji.oriented) {
+            cerr << "Hiro detected: " << hiro.size() << endl;
+            double patt_width = 80.f;
+            double patt_center[2] = {0, 0};
+            double patt_trans[3][4];
+
+            double gl_para[16];
+
+            arGetTransMat(&marker_info[j], patt_center, patt_width, patt_trans);
+            argConvGlpara(patt_trans, gl_para);
+
+            int closest = -1;
+            float min_dist = FLT_MAX;
+            for (unsigned int i = 0; i < hiro.size(); ++i) {
+                glm::vec4 korigin = hiro[i].reference;
+                glm::vec4 origin(gl_para[12]-korigin.x, gl_para[13]-korigin.y, gl_para[14]-korigin.z, 1.0);
+                float dist = glm::distance(origin, hiro[i].get_origin());
+
+                if (dist < min_dist) {
+                    min_dist = dist;
+                    closest = i;
+                }
+            }
+
+            if (closest < 0 || (min_dist > 200 )) {
+                hiro.push_back(Pattern());
+                closest = hiro.size()-1;
+            }
+
+
+            hiro[closest].accomulate_relative_position(&marker_info[j], kanji.get_origin());
         }
     }
-    if( k == -1 ) {
-        argSwapBuffers();
-        return;
-    }
 
-    /* get the transformation between the marker and the real camera */
-    arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
+    sort(hiro.begin(), hiro.end(), pattern_sort);
 
     draw();
 
     argSwapBuffers();
 }
 
-static void init( void )
-{
+static void init( void ) {
     ARParam  wparam;
 
     /* open the video path */
@@ -140,12 +172,15 @@ static void init( void )
         printf("Camera parameter load error !!\n");
         exit(0);
     }
+
     arParamChangeSize( &wparam, xsize, ysize, &cparam );
     arInitCparam( &cparam );
     printf("*** Camera Parameter ***\n");
     arParamDisp( &cparam );
 
-    if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
+    id_kanji = arLoadPatt(patt_kanji);
+    id_hiro = arLoadPatt(patt_hiro);
+    if ( id_kanji < 0 || id_hiro < 0 ) {
         printf("pattern load error !!\n");
         exit(0);
     }
@@ -155,6 +190,9 @@ static void init( void )
 
     //init GL and meshes
     initGL();
+
+    renderable.frame = 0;
+    renderable.location = 0;
 }
 
 /* cleanup function called when program exits */
@@ -167,7 +205,7 @@ static void cleanup(void)
 
 static void draw( void )
 {
-    double    gl_para[16];
+
     GLfloat   mat_ambient[]     = {0.0, 0.0, 1.0, 1.0};
     GLfloat   mat_flash[]       = {0.0, 0.0, 1.0, 1.0};
     GLfloat   mat_flash_shiny[] = {50.0};
@@ -183,25 +221,78 @@ static void draw( void )
     glDepthFunc(GL_LEQUAL);
 
     /* load the camera transformation matrix */
-    argConvGlpara(patt_trans, gl_para);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixd( gl_para );
+    if (hiro.size() > 0) {
+        glm::vec4 origin = hiro[renderable.location].get_origin();
+        glm::vec4 target = hiro[(renderable.location+1)%hiro.size()].get_origin();
+        double * gl_para = kanji.get_transformation_matrix();
+        float t = ((float) renderable.frame)/100.0f;
+        gl_para[12] += origin.x * (1-t) + target.x*t;
+        gl_para[13] += origin.y * (1-t) + target.y*t;
+        gl_para[14] += origin.z * (1-t) + target.z*t;
 
-    glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambi);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightZeroColor);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
-    glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
-    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
-    glMatrixMode(GL_MODELVIEW);
-    glTranslatef( 0.0, 0.0, 25.0 );
-    //glutSolidCube(50.0);
-    glScalef(50, 50, 50);
-mesh.Render();
-    glDisable( GL_LIGHTING );
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glLoadMatrixd( gl_para );
+
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+        glLightfv(GL_LIGHT0, GL_AMBIENT, ambi);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, lightZeroColor);
+        glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
+        glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
+        glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+        glMatrixMode(GL_MODELVIEW);
+        glTranslatef( 0.0, 0.0, 25.0 );
+
+        glScalef(50, 50, 50);
+            mesh.Render();
+        glDisable( GL_LIGHTING );
 
 
-    glDisable( GL_DEPTH_TEST );
+        glDisable( GL_DEPTH_TEST );
+
+        renderable.frame += 1;
+        if (renderable.frame == 100) {
+            renderable.frame = 0;
+            renderable.location = (renderable.location+1)% hiro.size();
+        }
+    }
+    /** Render a Bunny over each hiro pattern.
+    for (unsigned int i = 0; i < hiro.size(); ++i) {
+
+        double * gl_para = kanji.get_transformation_matrix();
+        glm::vec4 displacement = hiro[i].get_origin();
+        gl_para[12] += displacement.x;
+        gl_para[13] += displacement.y;
+        gl_para[14] += displacement.z;
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glLoadMatrixd( gl_para );
+
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+        glLightfv(GL_LIGHT0, GL_AMBIENT, ambi);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, lightZeroColor);
+        glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
+        glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
+        glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+        glMatrixMode(GL_MODELVIEW);
+        glTranslatef( 0.0, 0.0, 25.0 );
+
+        glScalef(50, 50, 50);
+            mesh.Render();
+        glDisable( GL_LIGHTING );
+
+
+        glDisable( GL_DEPTH_TEST );
+    }**/
+
+    /** cout << gl_para[0] << " " << gl_para[4] << " " << gl_para[8] << " " << gl_para[12] << endl <<
+             gl_para[1] << " " << gl_para[5] << " " << gl_para[9] << " " << gl_para[13] << endl <<
+             gl_para[2] << " " << gl_para[6] << " " << gl_para[10]<< " " << gl_para[14]<< endl <<
+             gl_para[3]<< " " << gl_para[7]<< " " << gl_para[11]<< " " << gl_para[15] << endl << endl << endl;
+    **/
 }
