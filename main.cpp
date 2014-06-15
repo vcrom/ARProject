@@ -98,7 +98,7 @@ void updateEnemies()
         enemies.push_back(AnimatedObject());
 
 
-    for(int i = 0; i < enemies.size(); ++i)
+    for(uint i = 0; i < enemies.size(); ++i)
     {
         if(enemies[i].reachedGoal())
         {
@@ -246,7 +246,7 @@ void drawPath()
     glLoadIdentity();
     glColor3f(1.0f, 0.0f, 0.0f);
     glBegin(GL_LINES);
-    for(int i = 0; i < hiro.size()-1; ++i)
+    for(uint i = 0; i < hiro.size()-1; ++i)
     {
         cerr << "LINES" << endl;
         glm::vec4 p1 = hiro[i].get_global_position();
@@ -259,10 +259,6 @@ void drawPath()
 
 static void draw( void )
 {
-
-    GLfloat   mat_ambient[]     = {0.0, 0.0, 1.0, 1.0};
-    GLfloat   mat_flash[]       = {0.0, 0.0, 1.0, 1.0};
-    GLfloat   mat_flash_shiny[] = {50.0};
     GLfloat   light_position[]  = {100.0,-200.0,200.0,0.0};
     GLfloat   ambi[]            = {0.1, 0.1, 0.1, 0.1};
     GLfloat   lightZeroColor[]  = {0.9, 0.9, 0.9, 0.1};
@@ -308,7 +304,7 @@ static void draw( void )
 
 cerr << "size: " << enemies.size() << endl;
 
-        for(int i = 0; i < enemies.size(); ++i)
+        for(uint i = 0; i < enemies.size(); ++i)
         {
             enemies[i].render(kanji, hiro);
         }
