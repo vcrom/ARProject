@@ -30,12 +30,12 @@ int             xsize, ysize;
 int             thresh = 200;
 int             counter = 0;
 
-char           *cparam_name    = "Data/camera_para.dat";
+const char           *cparam_name    = "Data/camera_para.dat";
 ARParam         cparam;
 
-char           *patt_hiro      = "Data/patt.hiro";
-char           *patt_kanji      = "Data/patt.kanji";
-int            id_kanji, id_hiro;
+const char           *patt_hiro      = "Data/patt.hiro";
+const char           *patt_kanji      = "Data/patt.kanji";
+int            id_kanji, id_hiro, id_sample1;
 
 static void   init(void);
 static void   cleanup(void);
