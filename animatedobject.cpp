@@ -36,7 +36,7 @@ void AnimatedObject::addFrame(int num_crl_points)
     if (frame >= frames_to_target) {
         frame = 0;
         ++location;
-        if(location > num_crl_points)
+        if(location == num_crl_points-1)
             finish = true;
     }
 }
