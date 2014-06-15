@@ -23,3 +23,7 @@
 
 #Custom QT
 *.pro.user*
+*.o
+
+#Ignore make
+Makefile
