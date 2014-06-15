@@ -45,9 +45,11 @@ static void   draw( void );
 
 #include "pattern.hpp"
 #include "mesh.h"
+#include "animatedobject.h"
 Mesh mesh;
 Pattern kanji;
 vector<Pattern> hiro;
+
 
 struct animated_object {
     unsigned int frame;
@@ -55,6 +57,7 @@ struct animated_object {
 };
 
 animated_object renderable;
+std::vector<AnimatedObject> enemies;
 
 void initGL() {
     glewInit();
@@ -198,6 +201,8 @@ static void init( void ) {
 
     renderable.frame = 0;
     renderable.location = 0;
+    enemies.push_back(AnimatedObject());
+
 }
 
 /* cleanup function called when program exits */
@@ -245,6 +250,15 @@ static void draw( void )
     cerr << "Hiros:" << hiro.size() << endl;
     /* load the camera transformation matrix */
     if (hiro.size() > 0) {
+        glEnable(GL_LIGHTING);
+        glEnable(GL_LIGHT0);
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+        glLightfv(GL_LIGHT0, GL_AMBIENT, ambi);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, lightZeroColor);
+        glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
+        glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
+        glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+
         glm::vec4 origin = hiro[renderable.location].get_origin();
         glm::vec4 target = hiro[(renderable.location+1)%hiro.size()].get_origin();
         double * gl_para = kanji.get_transformation_matrix();
@@ -256,7 +270,7 @@ static void draw( void )
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glLoadMatrixd( gl_para );
-
+/*
         glEnable(GL_LIGHTING);
         glEnable(GL_LIGHT0);
         glLightfv(GL_LIGHT0, GL_POSITION, light_position);
@@ -265,11 +279,16 @@ static void draw( void )
         glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
         glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
         glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+    */
         glMatrixMode(GL_MODELVIEW);
         //glTranslatef( 0.0, 0.0, 25.0 );
 
         glScalef(50, 50, 50);
             mesh.Render();
+
+
+enemies[0].Render(kanji, hiro);
+
         glDisable( GL_LIGHTING );
 
 

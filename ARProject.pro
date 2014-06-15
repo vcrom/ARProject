@@ -53,7 +53,8 @@ SOURCES += main.cpp \
     mesh.cpp \
     renderableobject.cpp \
     bbox.cpp \
-    pattern.cpp
+    pattern.cpp \
+    animatedobject.cpp
 
 QMAKE_POST_LINK +=  mkdir -p Data &
 QMAKE_POST_LINK +=  $$QMAKE_COPY $$_PRO_FILE_PWD_/Data/* Data &
@@ -70,4 +71,5 @@ HEADERS += \
     mesh.h \
     renderableobject.h \
     bbox.h \
-    pattern.hpp
+    pattern.hpp \
+    animatedobject.h

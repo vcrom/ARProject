@@ -108,9 +108,7 @@ glm::vec4 Pattern::get_origin() {
 
 glm::vec4 Pattern::get_global_position()
 {
-    glm::vec4 orig = get_origin();
-    return orig + reference;
-
+    return reference + get_origin();
 }
 
 glm::vec4 Pattern::get_xaxis() {
