@@ -57,7 +57,14 @@ SOURCES += main.cpp \
 
 QMAKE_POST_LINK +=  mkdir -p Data &
 QMAKE_POST_LINK +=  $$QMAKE_COPY $$_PRO_FILE_PWD_/Data/* Data &
-#export ARTOOLKIT_CONFIG="v4l2src device=/dev/video0 use-fixed-fps=false ! ffmpegcolorspace ! capsfilter caps=video/x-raw-rgb,bpp=24 ! identity name=artoolkit ! fakesink"
+
+#isEmpty(ARTOOLKIT_CONFIG) {
+    ARTOOLKIT_CONFIG="v4l2src device=/dev/video0 use-fixed-fps=false ! ffmpegcolorspace ! capsfilter caps=video/x-raw-rgb,bpp=24 ! identity name=artoolkit ! fakesink"
+#}
+
+#mytarget.target = ARProject
+#mytarget.commands = export ARTOOLKIT_CONFIG="v4l2src device=/dev/video0 use-fixed-fps=false ! ffmpegcolorspace ! capsfilter caps=video/x-raw-rgb,bpp=24 ! identity name=artoolkit ! fakesink"
+#QMAKE_EXTRA_TARGETS += mytarget
 
 HEADERS += \
     mesh.h \

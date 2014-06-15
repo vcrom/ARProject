@@ -109,6 +109,11 @@ static void mainLoop(void) {
     }
 
     arVideoCapNext();
+
+    glColor3f(0.0, 1.0, 0.0);
+    glLineWidth(6.0f);
+    for(int i = 0; i < marker_num; ++i)
+        argDrawSquare(marker_info[i].vertex, 0, 0);
     cerr << marker_num << "Patterns detected!" << endl;
     /* check for object visibility */
 
@@ -203,6 +208,23 @@ static void cleanup(void)
     argCleanup();
 }
 
+void drawPath()
+{
+    //glMatrixMode(GL_MODELVIEW);
+    //glLoadIdentity();
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glBegin(GL_LINES);
+    for(int i = 0; i < hiro.size()-1; ++i)
+    {
+        cerr << "LINES" << endl;
+        glm::vec4 p1 = hiro[i].get_origin();
+        glm::vec4 p2 = hiro[i+1].get_origin();
+        glVertex3f(p1.x, p1.y, p1.z);
+        glVertex3f(p2.x, p2.y, p2.z);
+    }
+    glEnd();
+}
+
 static void draw( void )
 {
 
@@ -220,6 +242,7 @@ static void draw( void )
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
+    cerr << "Hiros:" << hiro.size() << endl;
     /* load the camera transformation matrix */
     if (hiro.size() > 0) {
         glm::vec4 origin = hiro[renderable.location].get_origin();
@@ -243,7 +266,7 @@ static void draw( void )
         glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
         glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
         glMatrixMode(GL_MODELVIEW);
-        glTranslatef( 0.0, 0.0, 25.0 );
+        //glTranslatef( 0.0, 0.0, 25.0 );
 
         glScalef(50, 50, 50);
             mesh.Render();
@@ -251,6 +274,8 @@ static void draw( void )
 
 
         glDisable( GL_DEPTH_TEST );
+
+drawPath();
 
         renderable.frame += 1;
         if (renderable.frame == 100) {
