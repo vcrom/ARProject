@@ -32,6 +32,7 @@ public:
     glm::vec4 get_xaxis();
     glm::vec4 get_yaxis();
     glm::vec4 get_zaxis();
+    glm::vec4 get_global_position();
 
     double* get_transformation_matrix();
 

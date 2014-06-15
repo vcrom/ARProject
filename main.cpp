@@ -210,15 +210,15 @@ static void cleanup(void)
 
 void drawPath()
 {
-    //glMatrixMode(GL_MODELVIEW);
-    //glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
     glColor3f(1.0f, 0.0f, 0.0f);
     glBegin(GL_LINES);
     for(int i = 0; i < hiro.size()-1; ++i)
     {
         cerr << "LINES" << endl;
-        glm::vec4 p1 = hiro[i].get_origin();
-        glm::vec4 p2 = hiro[i+1].get_origin();
+        glm::vec4 p1 = hiro[i].get_global_position();
+        glm::vec4 p2 = hiro[i+1].get_global_position();
         glVertex3f(p1.x, p1.y, p1.z);
         glVertex3f(p2.x, p2.y, p2.z);
     }

@@ -106,6 +106,13 @@ glm::vec4 Pattern::get_origin() {
     }
 }
 
+glm::vec4 Pattern::get_global_position()
+{
+    glm::vec4 orig = get_origin();
+    return orig + reference;
+
+}
+
 glm::vec4 Pattern::get_xaxis() {
     if (oriented) {
         glm::vec4 aux = glm::normalize(xaxis);
