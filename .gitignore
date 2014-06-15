@@ -24,6 +24,7 @@
 #Custom QT
 *.pro.user*
 *.o
+ARProject
 
 #Ignore make
 Makefile
