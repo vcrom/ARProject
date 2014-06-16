@@ -11,7 +11,9 @@
 #include <AR/param.h>
 #include <AR/ar.h>
 
+#include <glm/gtx/string_cast.hpp>
 #include <glm/glm.hpp>
+#include <glm/gtx/norm.hpp>
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -60,6 +62,17 @@ vector<Pattern> towers;
 //    unsigned int location;
 //};
 
+#define BULLET_SPEED 4.0f
+#define BULLET_RAD 5.0f
+struct bullet
+{
+    glm::vec3 position;
+    bool has_target;
+    glm::vec3 targ_pos;
+    uint target_id;
+};
+std::vector<bullet> bullets;
+
 //animated_object renderable;
 bool debug = false;
 std::vector<AnimatedObject> enemies;
@@ -95,9 +108,50 @@ bool pattern_sort(Pattern a, Pattern b) {
     return a.get_origin().x < b.get_origin().x;
 }
 
+void updateBullets()
+{
+    for(uint i = 0; i < bullets.size(); ++i)
+    {
+        bullet bull = bullets[i];
+        if(bull.has_target)
+        {
+            AnimatedObject enemy = enemies[bull.target_id];
+            bull.targ_pos = enemy.getPosition();
+        }
+        glm::vec3 dir = bull.targ_pos - bull.position;
+        dir = glm::normalize(dir);
+        //cerr << "DIR: " << glm::to_string(dir) << endl;
+        dir *= BULLET_SPEED;
+        bull.position += dir;
+        //cerr << "BULL Pos:" << glm::to_string(bull.position) << " Targ: " << glm::to_string(bull.targ_pos) << endl;
+        bullets[i] = bull;
+    }
+
+    for(uint i = 0; i < bullets.size(); ++i)
+    {
+        bullet bull = bullets[i];
+        cerr << glm::distance(bull.targ_pos, bull.position) << endl;
+        if(glm::distance(bull.targ_pos, bull.position) < BULLET_RAD)
+        {
+            bullets.erase(bullets.begin()+i, bullets.begin()+i+1);
+            --i;
+            if(bull.has_target)
+            {
+                enemies.erase(enemies.begin() + bull.target_id, enemies.begin() + bull.target_id+1);
+                for(uint j = 0; j < bullets.size(); ++j)
+                {
+                    if(bullets[j].target_id == bull.target_id) bullets[j].has_target = false;
+                }
+            }
+        }
+    }
+}
+
+std::vector<int> elapsed_frames_tower;
 void updateTowers() {
 
     for(uint i = 0; i < towers.size(); ++i) {
+        ++elapsed_frames_tower[i];
         if (towers[i].active) {
             double * gl_para = kanji.get_transformation_matrix();
             glm::vec4 origin = towers[i].get_origin();
@@ -114,7 +168,15 @@ void updateTowers() {
             }
 
             if(enemy >= 0) {
-
+                if(elapsed_frames_tower[i]%20 == 0)
+                {
+                    bullet bull;
+                    bull.has_target = true;
+                    bull.target_id = enemy;
+                    glm::vec3 pos = glm::vec3(towers[i].get_origin().x + kanji.get_origin().x, towers[i].get_origin().y + kanji.get_origin().y, towers[i].get_origin().z + kanji.get_origin().z);
+                    bull.position = pos;
+                    bullets.push_back(bull);
+                }
             }
         }
     }
@@ -129,7 +191,18 @@ void updateEnemies() {
         if(enemies[i].reachedGoal()) {
             cout << "ouch" << endl;
             enemies.erase(enemies.begin()+i, enemies.begin()+i+1);
+            for(uint j = 0; j < bullets.size(); ++j)
+            {
+                if(bullets[j].target_id == i) bullets[j].has_target = false;
+
+            }
         }
+        /*
+        else if(enemies[i].reachedGoal()) {
+            cout << "killed" << endl;
+            enemies.erase(enemies.begin()+i, enemies.begin()+i+1);
+        }
+        */
 
     }
 }
@@ -253,6 +326,7 @@ static void mainLoop(void) {
             }
 
             if (closest < 0 || (min_dist > 200 )) {
+                elapsed_frames_tower.push_back(0);
                 towers.push_back(Pattern());
                 closest = towers.size()-1;
             }
@@ -265,17 +339,20 @@ static void mainLoop(void) {
 
     sort(hiro.begin(), hiro.end(), pattern_sort);
 
-    if(hiro.size() > 1) {
-        updateTowers();
-        updateEnemies();
-    }
 
     for (unsigned int i = 0; i < hiro.size(); ++i) {
         cout << hiro[i].active << " - " << hiro[i].get_origin().x  << " " << hiro[i].get_origin().y << " " << hiro[i].get_origin().z << endl;
     }
 
+    unsigned int active_hiros = 0;
+    for (unsigned int i = 0; i < hiro.size(); ++i)
+        active_hiros += hiro[i].active;
+    if(active_hiros > 1) {
+        updateTowers();
+        updateEnemies();
+        updateBullets();
+    }
     draw();
-
     argSwapBuffers();
 }
 
@@ -316,8 +393,13 @@ static void init( void ) {
 //    renderable.frame = 0;
 //    renderable.location = 0;
 
-    enemies = vector<AnimatedObject>(0);
-    //enemies.push_back(AnimatedObject());
+//    enemies.push_back(AnimatedObject());
+//    bullet bull;
+//    bull.has_target = false;
+//    bull.target_id = 0;
+//    bull.position = glm::vec3(100, 100, 0);
+//    bull.targ_pos = glm::vec3(0,0,0);
+//    bullets.push_back(bull);
 
 }
 
@@ -369,9 +451,15 @@ static void draw( void )
 
 
 
-    if(towers.size() > 0) {
-
+    {
+        GLfloat   mat_ambient[]     = {0.0, 0.0, 1.0, 1.0};
+        GLfloat   mat_flash[]       = {0.0, 0.0, 1.0, 1.0};
+        GLfloat   mat_flash_shiny[] = {50.0};
+        glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
+        glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
+        glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
         for(int i = 0; i < towers.size(); ++i)
+        {
             if (towers[i].active) {
                 double * gl_para = kanji.get_transformation_matrix();
                 glm::vec4 origin = towers[i].get_origin();
@@ -383,22 +471,47 @@ static void draw( void )
                 glLoadIdentity();
                 glLoadMatrixd( gl_para );
 
-                glutSolidTeapot(50);
+                //glutSolidTeapot(50);
+                glutSolidCone(50,20,20,20);
             }
+        }
+    }
+    {
+        cerr << "#BULLETS: " << bullets.size() << endl;
+        GLfloat mat_ambient[]    = {0.0, 1.0, 0.0, 1.0};
+        GLfloat mat_flash[]       = {0.0, 1.0, 0.0, 1.0};
+        GLfloat mat_flash_shiny[] = {50.0};
+        glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
+        glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
+        glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+        for(uint i = 0; i < bullets.size(); ++i)
+        {
+
+            double * gl_para = kanji.get_transformation_matrix();
+            gl_para[12] = bullets[i].position.x;
+            gl_para[13] = bullets[i].position.y;
+            gl_para[14] = bullets[i].position.z;
+
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            glLoadMatrixd( gl_para );
+
+            glutSolidSphere(BULLET_RAD, 20, 20);
+
+        }
     }
 
-    cerr << "Hiros:" << hiro.size() << endl;
     unsigned int active_hiros = 0;
     for (unsigned int i = 0; i < hiro.size(); ++i)
         active_hiros += hiro[i].active;
 
+    cerr << "Active Hiros:" << active_hiros << endl;
     if (active_hiros > 1) {
-
-        //cerr << "size: " << enemies.size() << endl;
         for(uint i = 0; i < enemies.size(); ++i) {
             enemies[i].render(kanji, hiro);
         }
     }
+
 
     glDisable( GL_LIGHTING );
 
