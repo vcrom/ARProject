@@ -29,7 +29,7 @@ char			*vconf = "";
 #endif
 
 int             xsize, ysize;
-int             thresh = 200;
+int             thresh = 150;//200;
 int             counter = 0;
 
 const char           *cparam_name    = "Data/camera_para.dat";
@@ -62,8 +62,9 @@ vector<Pattern> towers;
 //    unsigned int location;
 //};
 
-#define BULLET_SPEED 4.0f
-#define BULLET_RAD 5.0f
+#define BULLET_SPEED 5.0f
+#define BULLET_RAD 10.0f
+#define TOWER_SHOOT_FREQ 10
 struct bullet
 {
     glm::vec3 position;
@@ -168,7 +169,7 @@ void updateTowers() {
             }
 
             if(enemy >= 0) {
-                if(elapsed_frames_tower[i]%20 == 0)
+                if(elapsed_frames_tower[i]%TOWER_SHOOT_FREQ == 0)
                 {
                     bullet bull;
                     bull.has_target = true;
@@ -182,8 +183,9 @@ void updateTowers() {
     }
 }
 
+#define ENEMIES_PROB 0.02d
 void updateEnemies() {
-    if((float)rand()/(float)RAND_MAX > 0.5 && enemies.size() < 5)
+    if((double)rand()/(double)RAND_MAX >= 1-ENEMIES_PROB && enemies.size() < 5)
         enemies.push_back(AnimatedObject());
 
     for(uint i = 0; i < enemies.size(); ++i) {
@@ -197,13 +199,6 @@ void updateEnemies() {
 
             }
         }
-        /*
-        else if(enemies[i].reachedGoal()) {
-            cout << "killed" << endl;
-            enemies.erase(enemies.begin()+i, enemies.begin()+i+1);
-        }
-        */
-
     }
 }
 
@@ -349,8 +344,8 @@ static void mainLoop(void) {
         active_hiros += hiro[i].active;
     if(active_hiros > 1) {
         updateTowers();
-        updateEnemies();
         updateBullets();
+        updateEnemies();
     }
     draw();
     argSwapBuffers();
@@ -477,9 +472,10 @@ static void draw( void )
         }
     }
     {
+        glEnable (GL_BLEND);
         cerr << "#BULLETS: " << bullets.size() << endl;
-        GLfloat mat_ambient[]    = {0.0, 1.0, 0.0, 1.0};
-        GLfloat mat_flash[]       = {0.0, 1.0, 0.0, 1.0};
+        GLfloat mat_ambient[]    = {0.0, 1.0, 0.0, 0.5};
+        GLfloat mat_flash[]       = {0.0, 1.0, 0.0, 0.7};
         GLfloat mat_flash_shiny[] = {50.0};
         glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
         glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);
@@ -499,6 +495,7 @@ static void draw( void )
             glutSolidSphere(BULLET_RAD, 20, 20);
 
         }
+        glDisable (GL_BLEND);
     }
 
     unsigned int active_hiros = 0;
