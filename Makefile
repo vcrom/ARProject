@@ -49,12 +49,16 @@ SOURCES       = main.cpp \
 		mesh.cpp \
 		renderableobject.cpp \
 		bbox.cpp \
-		pattern.cpp 
+		pattern.cpp \
+		animatedobject.cpp \
+		turret.cpp 
 OBJECTS       = main.o \
 		mesh.o \
 		renderableobject.o \
 		bbox.o \
-		pattern.o
+		pattern.o \
+		animatedobject.o \
+		turret.o
 DIST          = /usr/lib/x86_64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/shell-unix.conf \
 		/usr/lib/x86_64-linux-gnu/qt5/mkspecs/common/unix.conf \
@@ -275,7 +279,7 @@ qmake_all: FORCE
 
 dist: 
 	@test -d .tmp/ARProject1.0.0 || mkdir -p .tmp/ARProject1.0.0
-	$(COPY_FILE) --parents $(SOURCES) $(DIST) .tmp/ARProject1.0.0/ && $(COPY_FILE) --parents mesh.h renderableobject.h bbox.h pattern.hpp .tmp/ARProject1.0.0/ && $(COPY_FILE) --parents main.cpp mesh.cpp renderableobject.cpp bbox.cpp pattern.cpp .tmp/ARProject1.0.0/ && (cd `dirname .tmp/ARProject1.0.0` && $(TAR) ARProject1.0.0.tar ARProject1.0.0 && $(COMPRESS) ARProject1.0.0.tar) && $(MOVE) `dirname .tmp/ARProject1.0.0`/ARProject1.0.0.tar.gz . && $(DEL_FILE) -r .tmp/ARProject1.0.0
+	$(COPY_FILE) --parents $(SOURCES) $(DIST) .tmp/ARProject1.0.0/ && $(COPY_FILE) --parents mesh.h renderableobject.h bbox.h pattern.hpp animatedobject.h turret.h .tmp/ARProject1.0.0/ && $(COPY_FILE) --parents main.cpp mesh.cpp renderableobject.cpp bbox.cpp pattern.cpp animatedobject.cpp turret.cpp .tmp/ARProject1.0.0/ && (cd `dirname .tmp/ARProject1.0.0` && $(TAR) ARProject1.0.0.tar ARProject1.0.0 && $(COMPRESS) ARProject1.0.0.tar) && $(MOVE) `dirname .tmp/ARProject1.0.0`/ARProject1.0.0.tar.gz . && $(DEL_FILE) -r .tmp/ARProject1.0.0
 
 
 clean:compiler_clean 
@@ -387,7 +391,9 @@ main.o: main.cpp include/AR/gsub.h \
 		pattern.hpp \
 		mesh.h \
 		renderableobject.h \
-		bbox.h
+		bbox.h \
+		animatedobject.h \
+		turret.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
 
 mesh.o: mesh.cpp mesh.h \
@@ -641,8 +647,162 @@ pattern.o: pattern.cpp pattern.hpp \
 		glm/core/func_integer.hpp \
 		glm/core/func_integer.inl \
 		glm/core/func_noise.hpp \
-		glm/core/func_noise.inl
+		glm/core/func_noise.inl \
+		include/AR/gsub.h \
+		include/AR/config.h \
+		include/AR/param.h \
+		include/AR/ar.h \
+		include/AR/video.h \
+		include/AR/sys/videoWin32DirectShow.h \
+		include/AR/sys/videoLinuxV4L.h \
+		include/AR/sys/videoLinuxDV.h \
+		include/AR/sys/videoLinux1394Cam.h \
+		include/AR/sys/videoGStreamer.h \
+		include/AR/sys/videoSGI.h \
+		include/AR/sys/videoMacOSX.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o pattern.o pattern.cpp
+
+animatedobject.o: animatedobject.cpp animatedobject.h \
+		mesh.h \
+		glm/glm.hpp \
+		glm/core/_fixes.hpp \
+		glm/core/setup.hpp \
+		glm/core/_detail.hpp \
+		glm/core/_vectorize.hpp \
+		glm/core/type.hpp \
+		glm/core/type_half.hpp \
+		glm/core/type_half.inl \
+		glm/core/type_float.hpp \
+		glm/core/type_int.hpp \
+		glm/core/type_gentype.hpp \
+		glm/core/type_size.hpp \
+		glm/core/type_vec1.hpp \
+		glm/core/type_vec.hpp \
+		glm/core/_swizzle.hpp \
+		glm/core/_swizzle_func.hpp \
+		glm/core/type_vec1.inl \
+		glm/core/type_vec2.hpp \
+		glm/core/type_vec2.inl \
+		glm/core/type_vec3.hpp \
+		glm/core/type_vec3.inl \
+		glm/core/type_vec4.hpp \
+		glm/core/type_vec4.inl \
+		glm/core/type_mat2x2.hpp \
+		glm/core/type_mat.hpp \
+		glm/core/type_mat2x2.inl \
+		glm/core/type_mat2x3.hpp \
+		glm/core/type_mat2x3.inl \
+		glm/core/type_mat2x4.hpp \
+		glm/core/type_mat2x4.inl \
+		glm/core/type_mat3x2.hpp \
+		glm/core/type_mat3x2.inl \
+		glm/core/type_mat3x3.hpp \
+		glm/core/type_mat3x3.inl \
+		glm/core/type_mat3x4.hpp \
+		glm/core/type_mat3x4.inl \
+		glm/core/type_mat4x2.hpp \
+		glm/core/type_mat4x2.inl \
+		glm/core/type_mat4x3.hpp \
+		glm/core/type_mat4x3.inl \
+		glm/core/type_mat4x4.hpp \
+		glm/core/type_mat4x4.inl \
+		glm/core/func_trigonometric.hpp \
+		glm/core/func_trigonometric.inl \
+		glm/core/func_exponential.hpp \
+		glm/core/func_exponential.inl \
+		glm/core/func_common.hpp \
+		glm/core/func_common.inl \
+		glm/core/func_packing.hpp \
+		glm/core/func_packing.inl \
+		glm/core/func_geometric.hpp \
+		glm/core/func_geometric.inl \
+		glm/core/func_matrix.hpp \
+		glm/core/func_matrix.inl \
+		glm/core/func_vector_relational.hpp \
+		glm/core/func_vector_relational.inl \
+		glm/core/func_integer.hpp \
+		glm/core/func_integer.inl \
+		glm/core/func_noise.hpp \
+		glm/core/func_noise.inl \
+		renderableobject.h \
+		bbox.h \
+		pattern.hpp \
+		include/AR/gsub.h \
+		include/AR/config.h \
+		include/AR/param.h \
+		include/AR/ar.h \
+		include/AR/video.h \
+		include/AR/sys/videoWin32DirectShow.h \
+		include/AR/sys/videoLinuxV4L.h \
+		include/AR/sys/videoLinuxDV.h \
+		include/AR/sys/videoLinux1394Cam.h \
+		include/AR/sys/videoGStreamer.h \
+		include/AR/sys/videoSGI.h \
+		include/AR/sys/videoMacOSX.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o animatedobject.o animatedobject.cpp
+
+turret.o: turret.cpp turret.h \
+		glm/glm.hpp \
+		glm/core/_fixes.hpp \
+		glm/core/setup.hpp \
+		glm/core/_detail.hpp \
+		glm/core/_vectorize.hpp \
+		glm/core/type.hpp \
+		glm/core/type_half.hpp \
+		glm/core/type_half.inl \
+		glm/core/type_float.hpp \
+		glm/core/type_int.hpp \
+		glm/core/type_gentype.hpp \
+		glm/core/type_size.hpp \
+		glm/core/type_vec1.hpp \
+		glm/core/type_vec.hpp \
+		glm/core/_swizzle.hpp \
+		glm/core/_swizzle_func.hpp \
+		glm/core/type_vec1.inl \
+		glm/core/type_vec2.hpp \
+		glm/core/type_vec2.inl \
+		glm/core/type_vec3.hpp \
+		glm/core/type_vec3.inl \
+		glm/core/type_vec4.hpp \
+		glm/core/type_vec4.inl \
+		glm/core/type_mat2x2.hpp \
+		glm/core/type_mat.hpp \
+		glm/core/type_mat2x2.inl \
+		glm/core/type_mat2x3.hpp \
+		glm/core/type_mat2x3.inl \
+		glm/core/type_mat2x4.hpp \
+		glm/core/type_mat2x4.inl \
+		glm/core/type_mat3x2.hpp \
+		glm/core/type_mat3x2.inl \
+		glm/core/type_mat3x3.hpp \
+		glm/core/type_mat3x3.inl \
+		glm/core/type_mat3x4.hpp \
+		glm/core/type_mat3x4.inl \
+		glm/core/type_mat4x2.hpp \
+		glm/core/type_mat4x2.inl \
+		glm/core/type_mat4x3.hpp \
+		glm/core/type_mat4x3.inl \
+		glm/core/type_mat4x4.hpp \
+		glm/core/type_mat4x4.inl \
+		glm/core/func_trigonometric.hpp \
+		glm/core/func_trigonometric.inl \
+		glm/core/func_exponential.hpp \
+		glm/core/func_exponential.inl \
+		glm/core/func_common.hpp \
+		glm/core/func_common.inl \
+		glm/core/func_packing.hpp \
+		glm/core/func_packing.inl \
+		glm/core/func_geometric.hpp \
+		glm/core/func_geometric.inl \
+		glm/core/func_matrix.hpp \
+		glm/core/func_matrix.inl \
+		glm/core/func_vector_relational.hpp \
+		glm/core/func_vector_relational.inl \
+		glm/core/func_integer.hpp \
+		glm/core/func_integer.inl \
+		glm/core/func_noise.hpp \
+		glm/core/func_noise.inl
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o turret.o turret.cpp
 
 ####### Install
 

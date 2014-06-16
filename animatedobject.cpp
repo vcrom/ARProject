@@ -9,8 +9,7 @@ AnimatedObject::AnimatedObject()
     finish = false;
 }
 
-AnimatedObject::AnimatedObject(int speed)
-{
+AnimatedObject::AnimatedObject(int speed) {
     frame = 0;
     location = 0;
     rotation = 0.0f;
@@ -19,24 +18,21 @@ AnimatedObject::AnimatedObject(int speed)
 }
 
 
-AnimatedObject::~AnimatedObject()
-{
-}
+AnimatedObject::~AnimatedObject() {}
 
 bool AnimatedObject::reachedGoal()
 {
     return finish;
 }
 
-void AnimatedObject::addFrame(int num_crl_points)
-{
+void AnimatedObject::addFrame(unsigned int next, unsigned int nextnext) {
     frame += 1;
     rotation += ROT_SPED;
 
     if (frame >= frames_to_target) {
         frame = 0;
-        ++location;
-        if(location == num_crl_points-1)
+        location = next;
+        if(location >= nextnext)
             finish = true;
     }
 }
@@ -51,7 +47,12 @@ void AnimatedObject::render(Pattern kanji, std::vector<Pattern> hiros)
     glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
 
     glm::vec4 origin = hiros[location].get_origin();
-    glm::vec4 target = hiros[(location+1)%hiros.size()].get_origin();
+
+    unsigned int next = (location+1)%hiros.size();
+    while (!hiros[next].active)
+        next = (next+1)%hiros.size();
+    glm::vec4 target = hiros[next].get_origin();
+
     double * gl_para = kanji.get_transformation_matrix();
     float t = ((float) frame)/(float)frames_to_target;
     gl_para[12] += origin.x * (1-t) + target.x*t;
@@ -70,7 +71,10 @@ void AnimatedObject::render(Pattern kanji, std::vector<Pattern> hiros)
     //glutSolidDodecahedron();
     glutSolidCube(30);
 
-    addFrame(hiros.size());
+    unsigned int nextnext = (next+1)%hiros.size();
+    while (!hiros[nextnext].active)
+        nextnext = (nextnext+1)%hiros.size();
+    addFrame(next, nextnext);
 }
 
 glm::vec3 AnimatedObject::getPosition()

@@ -12,7 +12,8 @@ class Pattern {
 public:
     Pattern();
 
-    bool oriented;
+    bool oriented, active;
+    unsigned int last_activated;
 
     double          patt_width;
     double          patt_center[2];

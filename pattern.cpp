@@ -2,7 +2,7 @@
 #include <iostream>
 using namespace std;
 
-Pattern::Pattern(): oriented(false), patt_width(80.0f),
+Pattern::Pattern(): oriented(false), active(false), last_activated(0), patt_width(80.0f),
                     origin(0, 0, 0, 1), xaxis(0, 0, 0, 0), yaxis(0, 0, 0, 0), zaxis(0, 0, 0, 0),
                     averaged_origin(0), averaged_xaxis(0), averaged_yaxis(0), averaged_zaxis(0) {
     patt_center[0] = 0;
@@ -34,6 +34,7 @@ void Pattern::located_zaxis(const glm::vec4 & candidate) {
 
 void Pattern::accomulate_relative_position(ARMarkerInfo *marker_info, const glm::vec4 & position) {
     reference = position;
+    active = averaged_origin >= 1000;
 
     double gl_para[16];
     arGetTransMat(marker_info, patt_center, patt_width, patt_trans);
@@ -64,16 +65,12 @@ void Pattern::accomulate_relative_position(ARMarkerInfo *marker_info, const glm:
 
 
 void Pattern::set_position(ARMarkerInfo *marker_info) {
+    active = true;
+
     double gl_para[16];
     arGetTransMat(marker_info, patt_center, patt_width, patt_trans);
     argConvGlpara(patt_trans, gl_para);
 
-  /**  cout << gl_para[0] << " " << gl_para[4] << " " << gl_para[8] << " " << gl_para[12] << endl <<
-            gl_para[1] << " " << gl_para[5] << " " << gl_para[9] << " " << gl_para[13] << endl <<
-            gl_para[2] << " " << gl_para[6] << " " << gl_para[10]<< " " << gl_para[14]<< endl <<
-            gl_para[3]<< " " << gl_para[7]<< " " << gl_para[11]<< " " << gl_para[15] << endl << endl;
-
-**/
     glm::vec4 o(0, 0, 0, 1);
     glm::mat4 transform( gl_para[0], gl_para[1], gl_para[2], gl_para[3],
                          gl_para[4], gl_para[5], gl_para[6], gl_para[7],

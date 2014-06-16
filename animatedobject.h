@@ -22,7 +22,7 @@ public:
     glm::vec3 getPosition();
 
 private:
-    void addFrame(int num_crl_points);
+    void addFrame(unsigned int next, unsigned int nextnext);
     unsigned int frame;
     unsigned int location;
     float rotation;
