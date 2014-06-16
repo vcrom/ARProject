@@ -460,8 +460,8 @@ static void draw( void )
                 glLoadIdentity();
                 glLoadMatrixd( gl_para );
 
-                //glutSolidTeapot(50);
-                glutSolidCone(50,20,20,20);
+                glutSolidTeapot(50);
+                //glutSolidCone(50,20,20,20);
             }
         }
     }
