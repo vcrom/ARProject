@@ -121,17 +121,17 @@ void updateBullets()
         }
         glm::vec3 dir = bull.targ_pos - bull.position;
         dir = glm::normalize(dir);
-        //cerr << "DIR: " << glm::to_string(dir) << endl;
+
         dir *= BULLET_SPEED;
         bull.position += dir;
-        //cerr << "BULL Pos:" << glm::to_string(bull.position) << " Targ: " << glm::to_string(bull.targ_pos) << endl;
+
         bullets[i] = bull;
     }
 
     for(uint i = 0; i < bullets.size(); ++i)
     {
         bullet bull = bullets[i];
-        cerr << glm::distance(bull.targ_pos, bull.position) << endl;
+
         if(glm::distance(bull.targ_pos, bull.position) < BULLET_RAD)
         {
             bullets.erase(bullets.begin()+i, bullets.begin()+i+1);
@@ -168,7 +168,7 @@ void updateTowers() {
                 }
             }
 
-            if(enemy >= 0) {
+            if(enemy >= 0 && kanji.active) {
                 if(elapsed_frames_tower[i]%TOWER_SHOOT_FREQ == 0)
                 {
                     bullet bull;
@@ -193,8 +193,7 @@ void updateEnemies() {
         if(enemies[i].reachedGoal()) {
             cout << "ouch" << endl;
             enemies.erase(enemies.begin()+i, enemies.begin()+i+1);
-            for(uint j = 0; j < bullets.size(); ++j)
-            {
+            for(uint j = 0; j < bullets.size(); ++j) {
                 if(bullets[j].target_id == i) bullets[j].has_target = false;
 
             }
@@ -223,10 +222,10 @@ static void mainLoop(void) {
         for (unsigned int i = 0; i < hiro.size(); ++i)
             if (hiro[i].active)
                 new_hiros.push_back(hiro[i]);
-        new_hiros = hiro;
+        hiro = new_hiros;
 
         vector<Pattern> new_turrets;
-        for (unsigned int i = 0; i < hiro.size(); ++i)
+        for (unsigned int i = 0; i < towers.size(); ++i)
             if (counter - towers[i].last_activated < 100)
                 new_turrets.push_back(towers[i]);
         towers = new_turrets;
@@ -258,12 +257,10 @@ static void mainLoop(void) {
 
         if (id_kanji == marker_info[j].id) {
 
-            cerr << "Kanji detected!" << endl;
             kanji.set_position(&marker_info[j]);
 
         } else if (id_hiro == marker_info[j].id && kanji.oriented) {
 
-            cerr << "Hiro detected: " << hiro.size() << endl;
             double patt_width = 80.f;
             double patt_center[2] = {0, 0};
             double patt_trans[3][4];
@@ -295,8 +292,6 @@ static void mainLoop(void) {
             hiro[closest].accomulate_relative_position(&marker_info[j], kanji.get_origin());
 
         } else if(id_sample1 == marker_info[j].id && kanji.oriented ) {
-
-            cerr << "sample Detected!: " << towers.size() << endl;
 
             double patt_width = 80.f;
             double patt_center[2] = {0, 0};
@@ -417,7 +412,6 @@ void drawPath()
     glBegin(GL_LINES);
     for(uint i = 0; i < hiro.size()-1; ++i)
     {
-        cerr << "LINES" << endl;
         glm::vec4 p1 = hiro[i].get_origin();
         glm::vec4 p2 = hiro[i+1].get_origin();
         glVertex3f(p1.x+pos_kanji.x, p1.y+pos_kanji.y, p1.z+pos_kanji.z);
@@ -473,7 +467,7 @@ static void draw( void )
     }
     {
         glEnable (GL_BLEND);
-        cerr << "#BULLETS: " << bullets.size() << endl;
+
         GLfloat mat_ambient[]    = {0.0, 1.0, 0.0, 0.5};
         GLfloat mat_flash[]       = {0.0, 1.0, 0.0, 0.7};
         GLfloat mat_flash_shiny[] = {50.0};
@@ -502,7 +496,6 @@ static void draw( void )
     for (unsigned int i = 0; i < hiro.size(); ++i)
         active_hiros += hiro[i].active;
 
-    cerr << "Active Hiros:" << active_hiros << endl;
     if (active_hiros > 1) {
         for(uint i = 0; i < enemies.size(); ++i) {
             enemies[i].render(kanji, hiro);
