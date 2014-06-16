@@ -27,3 +27,5 @@
 
 #Ignore make
 Makefile
+#executable
+ARProject
